@@ -1,7 +1,7 @@
 # hardlinq
 
-*This command-line utility compares the contents of dirA and dirB, then creates hard links to any missing files in dirB.*<br />
-*Its purpose is to duplicate (or loosely sync) two directories without duplicating hard disk usage*<br />
+*This command-line utility compares the contents of dirA and dirB, then creates hard links for any missing files in dirB.*<br />
+*Its purpose is to duplicate (or loosely sync) two directories without duplicating hard disk usage.*<br />
 
 	Usage: hardlinq <sourceDir> <destDir> [-t]
 	  -t	test mode (don't write, show diff files only)
