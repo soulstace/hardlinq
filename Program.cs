@@ -1,6 +1,7 @@
 ﻿/* Based on source code provided by Microsoft, modified to create hard links */
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -12,12 +13,7 @@ namespace hardlinq
         [STAThread]
         static void Main(string[] args)
         {
-            if (args.Length < 2)
-                Console.WriteLine("hardlinq Copyright (C) 2021 soulstace\n" +
-                    "github.com/soulstace/hardlinq\n\n" +
-                    "Usage: hardlinq <sourceDir> <destDir> [-t]\n" +
-                    "  -t\ttest mode (don't write, show diff files only)");
-            else if (args.Length >= 2 &&
+            if (args.Length >= 2 &&
                 Directory.Exists(args[0]) &&
                 Directory.Exists(args[1]))
             {
@@ -31,6 +27,12 @@ namespace hardlinq
                 IEnumerable<FileInfo> destList = destdir.GetFiles("*.*", SearchOption.AllDirectories);
 
                 FileCompare myFileCompare = new FileCompare();
+
+                if (args.Any("--findlinks".Contains))
+                {
+                    FindLinks(srcList);
+                    return;
+                }
 
                 bool areIdentical = srcList.SequenceEqual(destList, myFileCompare);
                 if (areIdentical == true)
@@ -55,7 +57,7 @@ namespace hardlinq
 
                 var queryList1Only = (from file in srcList
                                       select file).Except(destList, myFileCompare);
-                if(!areIdentical)
+                if (!areIdentical)
                     Console.WriteLine("The following files from sourceDir do not match destDir:");
 
                 int count = 0;
@@ -67,7 +69,7 @@ namespace hardlinq
                     {
                         string link = v.FullName.Replace(sourcePath, destPath);
                         Directory.CreateDirectory(v.DirectoryName.Replace(sourcePath, destPath));
-                        
+
                         /* WARNING. Will likely fail at paths > 255 chars. */
                         if (CreateHardLink(link, v.FullName, IntPtr.Zero))
                             Console.WriteLine("Created hard link: " + link);
@@ -79,6 +81,7 @@ namespace hardlinq
                 Console.WriteLine("Press any key to exit.");
                 Console.ReadKey();
             }
+            else PrintUsage();
         }
 
         [DllImport("Kernel32.dll", CharSet = CharSet.Unicode)]
@@ -96,6 +99,52 @@ namespace hardlinq
         Computer Configuration > Administrative Templates > System > Filesystem > Enable Win32 long paths. */
         //[DllImport("Kernel32.dll", CharSet = CharSet.Unicode)]
         //static extern bool CreateHardLinkW(string lpFileName, string lpExistingFileName, IntPtr lpSecurityAttributes);
+
+        static void FindLinks(IEnumerable<FileInfo> srcList)
+        {
+            //string outputfile = "findlinks.txt";
+            //StreamWriter sw;
+            try
+            {
+                //if (!File.Exists(outputfile))
+                //    sw = File.CreateText(outputfile);
+                //else
+                //    sw = File.AppendText(outputfile);
+
+                Console.WriteLine("Searching for links. This could take a while...");
+
+                ProcessStartInfo psi = new ProcessStartInfo
+                {
+                    UseShellExecute = false,
+                    RedirectStandardOutput = true,
+                    FileName = "findlinks.exe"
+                };
+
+                foreach (FileInfo v in srcList)
+                {
+                    psi.Arguments = "-nobanner -accepteula " + "\"" + v.FullName + "\"";
+                    Process p = Process.Start(psi);
+                    string output = p.StandardOutput.ReadToEnd();
+                    Console.WriteLine(output);
+                    //sw.WriteLine(output);
+                }
+                //sw.Close();
+                Console.WriteLine("Done searching for links.");// See the resulting findlinks.txt in this program's directory.");
+            }
+            catch (Exception x)
+            {
+                Console.WriteLine(x.Message);
+            }
+        }
+
+        static void PrintUsage()
+        {
+            Console.WriteLine("hardlinq Copyright (C) 2021 soulstace\n" +
+                    "github.com/soulstace/hardlinq\n\n" +
+                    "Usage: hardlinq <sourceDir> <destDir> [-t] [--findlinks]\n" +
+                    "  -t\ttest mode (don't write, show diff files only)\n" +
+                    "  --findlinks\tfind all links in sourceDir (requires Sysinternals findlinks.exe in PATH)");
+        }
     }
 
     // This implementation defines a very simple comparison  
@@ -107,8 +156,8 @@ namespace hardlinq
 
         public bool Equals(FileInfo f1, FileInfo f2)
         {
-            return (f1.Name == f2.Name &&
-                    f1.Length == f2.Length);
+            return (f1.Name == f2.Name);// &&
+                    //f1.Length == f2.Length);
         }
 
         // Return a hash that reflects the comparison criteria. According to the
@@ -118,7 +167,7 @@ namespace hardlinq
         // hash code.  
         public int GetHashCode(FileInfo fi)
         {
-            string s = $"{fi.Name}{fi.Length}";
+            string s = $"{fi.Name}";// {fi.Length}";
             return s.GetHashCode();
         }
     }
