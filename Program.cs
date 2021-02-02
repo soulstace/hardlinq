@@ -1,4 +1,5 @@
 ﻿/* Based on source code provided by Microsoft, modified to create hard links */
+using Microsoft.Win32;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -102,39 +103,52 @@ namespace hardlinq
 
         static void FindLinks(IEnumerable<FileInfo> srcList)
         {
-            //string outputfile = "findlinks.txt";
-            //StreamWriter sw;
-            try
+            bool eulaAccepted = false;
+            RegistryKey r = Registry.CurrentUser.OpenSubKey(@"SOFTWARE\Sysinternals\FindLinks",
+                RegistryKeyPermissionCheck.ReadSubTree, System.Security.AccessControl.RegistryRights.ReadKey);
+            if (r != null)
             {
-                //if (!File.Exists(outputfile))
-                //    sw = File.CreateText(outputfile);
-                //else
-                //    sw = File.AppendText(outputfile);
+                eulaAccepted = (int)r.GetValue("EulaAccepted", 0) != 0;
+                r.Close();
+            }
 
-                Console.WriteLine("Searching for links. This could take a while...");
-
-                ProcessStartInfo psi = new ProcessStartInfo
+            if (eulaAccepted)
+            {
+                //string outputfile = "findlinks.txt";
+                //StreamWriter sw;
+                try
                 {
-                    UseShellExecute = false,
-                    RedirectStandardOutput = true,
-                    FileName = "findlinks.exe"
-                };
+                    //if (!File.Exists(outputfile))
+                    //    sw = File.CreateText(outputfile);
+                    //else
+                    //    sw = File.AppendText(outputfile);
 
-                foreach (FileInfo v in srcList)
-                {
-                    psi.Arguments = "-nobanner -accepteula " + "\"" + v.FullName + "\"";
-                    Process p = Process.Start(psi);
-                    string output = p.StandardOutput.ReadToEnd();
-                    Console.WriteLine(output);
-                    //sw.WriteLine(output);
+                    Console.WriteLine("Searching for links. This could take a while...");
+
+                    ProcessStartInfo psi = new ProcessStartInfo
+                    {
+                        UseShellExecute = false,
+                        RedirectStandardOutput = true,
+                        FileName = "findlinks.exe"
+                    };
+
+                    foreach (FileInfo v in srcList)
+                    {
+                        psi.Arguments = "-nobanner " + "\"" + v.FullName + "\"";
+                        Process p = Process.Start(psi);
+                        string output = p.StandardOutput.ReadToEnd();
+                        Console.WriteLine(output);
+                        //sw.WriteLine(output);
+                    }
+                    //sw.Close();
+                    Console.WriteLine("Done searching for links.");// See the resulting findlinks.txt in this program's directory.");
                 }
-                //sw.Close();
-                Console.WriteLine("Done searching for links.");// See the resulting findlinks.txt in this program's directory.");
+                catch (Exception x)
+                {
+                    Console.WriteLine(x.Message);
+                }
             }
-            catch (Exception x)
-            {
-                Console.WriteLine(x.Message);
-            }
+            else Console.WriteLine("You need to run Sysinternals findlinks.exe and accept its EULA.");
         }
 
         static void PrintUsage()
