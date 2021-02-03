@@ -35,6 +35,8 @@ namespace hardlinq
                     return;
                 }
 
+                bool strip = args.Any("--strip".Contains);
+
                 bool areIdentical = srcList.SequenceEqual(destList, myFileCompare);
                 if (areIdentical)
                 {
@@ -63,17 +65,20 @@ namespace hardlinq
                                       select file).Except(destList, myFileCompare);
 
                 int count = 0;
-                foreach (FileInfo v in queryList1Only)
+                foreach (FileInfo f in queryList1Only)
                 {
-                    Console.WriteLine(v.FullName);
+                    if (strip)
+                        Console.WriteLine(f.FullName.Replace(sourcePath, ""));
+                    else
+                        Console.WriteLine(f.FullName);
                     ++count;
                     if (args.Length == 2)
                     {
-                        string link = v.FullName.Replace(sourcePath, destPath);
-                        Directory.CreateDirectory(v.DirectoryName.Replace(sourcePath, destPath));
+                        string link = f.FullName.Replace(sourcePath, destPath);
+                        Directory.CreateDirectory(f.DirectoryName.Replace(sourcePath, destPath));
 
                         /* WARNING. Will likely fail at paths > 255 chars. */
-                        if (CreateHardLink(link, v.FullName, IntPtr.Zero))
+                        if (CreateHardLink(link, f.FullName, IntPtr.Zero))
                             Console.WriteLine("Created hard link: " + link);
                         else
                             Console.WriteLine("Error creating hard link: " + link);
@@ -133,9 +138,9 @@ namespace hardlinq
                         FileName = "findlinks.exe"
                     };
 
-                    foreach (FileInfo v in fileList)
+                    foreach (FileInfo f in fileList)
                     {
-                        psi.Arguments = "-nobanner " + "\"" + v.FullName + "\"";
+                        psi.Arguments = "-nobanner " + "\"" + f.FullName + "\"";
                         Process p = Process.Start(psi);
                         string output = p.StandardOutput.ReadToEnd();
                         Console.WriteLine(output);
@@ -156,8 +161,9 @@ namespace hardlinq
         {
             Console.WriteLine("hardlinq Copyright (C) 2021 soulstace\n" +
                     "github.com/soulstace/hardlinq\n\n" +
-                    "Usage: hardlinq <sourceDir> <destDir> [-t] [--findlinks]\n" +
+                    "Usage: hardlinq <sourceDir> <destDir> [-t] [--strip] [--findlinks]\n" +
                     "  -t\ttest mode (don't write, show diff files only)\n" +
+                    "  --strip\tstrip source path from test output (combine with -t)\n" +
                     "  --findlinks\tfind all links in destDir (requires Sysinternals findlinks.exe in PATH)");
         }
     }
