@@ -36,13 +36,16 @@ namespace hardlinq
                 }
 
                 bool areIdentical = srcList.SequenceEqual(destList, myFileCompare);
-                if (areIdentical == true)
+                if (areIdentical)
                 {
-                    Console.WriteLine("The two directories appear to be similar.");
+                    Console.WriteLine("The contents of the two directories appears to be similar.");
                     return;
                 }
                 else
-                    Console.WriteLine("The two directories are not the same.");
+                {
+                    Console.WriteLine("The contents of the two directories are not the same.");
+                    Console.WriteLine("The following files from \"{0}\" do not exist in \"{1}\"", sourcePath, destPath);
+                }
 
                 //var queryCommonFiles = srcList.Intersect(destList, myFileCompare);
                 //if (queryCommonFiles.Any())
@@ -58,8 +61,6 @@ namespace hardlinq
 
                 var queryList1Only = (from file in srcList
                                       select file).Except(destList, myFileCompare);
-                if (!areIdentical)
-                    Console.WriteLine("The following files from sourceDir do not match destDir:");
 
                 int count = 0;
                 foreach (FileInfo v in queryList1Only)
@@ -78,9 +79,9 @@ namespace hardlinq
                             Console.WriteLine("Error creating hard link: " + link);
                     }
                 }
-                Console.WriteLine("File count: " + count);
-                Console.WriteLine("Press any key to exit.");
-                Console.ReadKey();
+                Console.WriteLine("Total files: " + count);
+                //Console.WriteLine("Press any key to exit.");
+                //Console.ReadKey();
             }
             else PrintUsage();
         }
