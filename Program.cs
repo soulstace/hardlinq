@@ -21,17 +21,17 @@ namespace hardlinq
                 string sourcePath = args[0];
                 string destPath = args[1];
 
-                DirectoryInfo srcdir = new DirectoryInfo(sourcePath);
-                DirectoryInfo destdir = new DirectoryInfo(destPath);
+                DirectoryInfo srcDir = new DirectoryInfo(sourcePath);
+                DirectoryInfo destDir = new DirectoryInfo(destPath);
 
-                IEnumerable<FileInfo> srcList = srcdir.GetFiles("*.*", SearchOption.AllDirectories);
-                IEnumerable<FileInfo> destList = destdir.GetFiles("*.*", SearchOption.AllDirectories);
+                IEnumerable<FileInfo> srcList = srcDir.GetFiles("*.*", SearchOption.AllDirectories);
+                IEnumerable<FileInfo> destList = destDir.GetFiles("*.*", SearchOption.AllDirectories);
 
                 FileCompare myFileCompare = new FileCompare();
 
                 if (args.Any("--findlinks".Contains))
                 {
-                    FindLinks(srcList);
+                    FindLinks(destList);
                     return;
                 }
 
@@ -102,7 +102,7 @@ namespace hardlinq
         //[DllImport("Kernel32.dll", CharSet = CharSet.Unicode)]
         //static extern bool CreateHardLinkW(string lpFileName, string lpExistingFileName, IntPtr lpSecurityAttributes);
 
-        static void FindLinks(IEnumerable<FileInfo> srcList)
+        static void FindLinks(IEnumerable<FileInfo> fileList)
         {
             bool eulaAccepted = false;
             RegistryKey r = Registry.CurrentUser.OpenSubKey(@"SOFTWARE\Sysinternals\FindLinks",
@@ -133,7 +133,7 @@ namespace hardlinq
                         FileName = "findlinks.exe"
                     };
 
-                    foreach (FileInfo v in srcList)
+                    foreach (FileInfo v in fileList)
                     {
                         psi.Arguments = "-nobanner " + "\"" + v.FullName + "\"";
                         Process p = Process.Start(psi);
@@ -158,7 +158,7 @@ namespace hardlinq
                     "github.com/soulstace/hardlinq\n\n" +
                     "Usage: hardlinq <sourceDir> <destDir> [-t] [--findlinks]\n" +
                     "  -t\ttest mode (don't write, show diff files only)\n" +
-                    "  --findlinks\tfind all links in sourceDir (requires Sysinternals findlinks.exe in PATH)");
+                    "  --findlinks\tfind all links in destDir (requires Sysinternals findlinks.exe in PATH)");
         }
     }
 

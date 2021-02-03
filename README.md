@@ -5,7 +5,7 @@
 
 	Usage: hardlinq <sourceDir> <destDir> [-t] [--findlinks]
 	  -t	test mode (don't write, show diff files only)
-	  --findlinks	find all links in sourceDir (requires Sysinternals findlinks.exe in PATH)
+	  --findlinks	find all links in destDir (requires Sysinternals findlinks.exe in PATH)
 
 	Notes:
 	  Program is alpha. Not recommended for use with critical data.
