@@ -28,6 +28,7 @@ namespace hardlinq
                 IEnumerable<FileInfo> destList = destDir.GetFiles("*.*", SearchOption.AllDirectories);
 
                 FileCompare myFileCompare = new FileCompare();
+                myFileCompare.compLen = args.Any("--comparelength".Contains);
 
                 if (args.Any("--findlinks".Contains))
                 {
@@ -46,7 +47,8 @@ namespace hardlinq
                 else
                 {
                     Console.WriteLine("The contents of the two directories are not the same.");
-                    Console.WriteLine("The following files from \"{0}\" do not exist in \"{1}\"", sourcePath, destPath);
+                    string format = myFileCompare.compLen ? "or match in bytes within" : "within";
+                    Console.WriteLine("The following files from \"{0}\" do not exist {1} \"{2}\"", sourcePath, format, destPath);
                 }
 
                 //var queryCommonFiles = srcList.Intersect(destList, myFileCompare);
@@ -175,10 +177,13 @@ namespace hardlinq
     {
         public FileCompare() { }
 
+        public bool compLen = false;        
+
         public bool Equals(FileInfo f1, FileInfo f2)
         {
-            return (f1.Name == f2.Name);// &&
-                    //f1.Length == f2.Length);
+            return compLen ? 
+                (f1.Name == f2.Name && f1.Length == f2.Length) : 
+                (f1.Name == f2.Name);
         }
 
         // Return a hash that reflects the comparison criteria. According to the
@@ -188,7 +193,7 @@ namespace hardlinq
         // hash code.  
         public int GetHashCode(FileInfo fi)
         {
-            string s = $"{fi.Name}";// {fi.Length}";
+            string s = compLen ? $"{fi.Name}{fi.Length}" : $"{fi.Name}";
             return s.GetHashCode();
         }
     }

@@ -3,7 +3,7 @@
 *This command-line utility compares the contents of dirA and dirB, then creates hard links for any missing files in dirB.*<br />
 *Its purpose is to duplicate (or loosely sync) two directories without duplicating hard disk usage.*<br />
 
-	Usage: hardlinq <sourceDir> <destDir> [-t] [--strip] [--findlinks] 
+	Usage: hardlinq <sourceDir> <destDir> [-t] [--strip] [--findlinks]
 	  -t	test mode (don't write, show diff files only)
 	  --strip	strip source path from test output (combine with -t)
 	  --findlinks	find all links in destDir (requires Sysinternals findlinks.exe in PATH)
