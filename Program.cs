@@ -70,10 +70,6 @@ namespace hardlinq
                     int count = 0;
                     foreach (FileInfo f in queryList1Only)
                     {
-                        if (strip)
-                            Console.WriteLine(f.FullName.Replace(sourcePath, ""));
-                        else
-                            Console.WriteLine(f.FullName);
                         ++count;
                         if (args.Length == 2)
                         {
@@ -85,6 +81,13 @@ namespace hardlinq
                                 Console.WriteLine("Created hard link: " + link);
                             else
                                 Console.WriteLine("Error creating hard link: " + link);
+                        }
+                        else
+                        {
+                            if (strip)
+                                Console.WriteLine(f.FullName.Replace(sourcePath, ""));
+                            else
+                                Console.WriteLine(f.FullName);
                         }
                     }
                     Console.WriteLine("Total files: " + count);
