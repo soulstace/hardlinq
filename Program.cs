@@ -36,6 +36,8 @@ namespace hardlinq
                     return;
                 }
 
+                bool strip = sourcePath.Equals(".") ? false : args.Any("--strip".Contains);
+
                 bool areSimilar = srcList.SequenceEqual(destList, myFileCompare);
                 Console.WriteLine(areSimilar ? 
                     "The contents of the two directories appears to be similar." :
@@ -47,9 +49,9 @@ namespace hardlinq
                     if (queryCommonFiles.Any())
                     {
                         Console.WriteLine("The following files exist in both directories:");
-                        foreach (var v in queryCommonFiles)
+                        foreach (var f in queryCommonFiles)
                         {
-                            Console.WriteLine(v.FullName);  
+                            Console.WriteLine(strip ? f.FullName.Replace(sourcePath, "") : f.FullName);
                         }
                     }
                     else
@@ -65,7 +67,7 @@ namespace hardlinq
                     Console.WriteLine(format, sourcePath, myFileCompare.compLen ? "or match in bytes within" : "within", destPath);
 
                     int count = 0;
-                    foreach (FileInfo f in queryList1Only)
+                    foreach (var f in queryList1Only)
                     {
                         ++count;
                         if (args.Length == 2)
@@ -79,7 +81,7 @@ namespace hardlinq
                             else
                                 Console.WriteLine("Error creating hard link: " + link);
                         }
-                        else Console.WriteLine(args.Any("--strip".Contains) ? f.FullName.Replace(sourcePath, "") : f.FullName);
+                        else Console.WriteLine(strip ? f.FullName.Replace(sourcePath, "") : f.FullName);
                     }
                     Console.WriteLine("Total files: " + count);
                     //Console.WriteLine("Press any key to exit.");
@@ -136,7 +138,7 @@ namespace hardlinq
                         FileName = "findlinks.exe"
                     };
 
-                    foreach (FileInfo f in fileList)
+                    foreach (var f in fileList)
                     {
                         psi.Arguments = "-nobanner " + "\"" + f.FullName + "\"";
                         Process p = Process.Start(psi);
