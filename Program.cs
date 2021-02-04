@@ -30,8 +30,6 @@ namespace hardlinq
                 FileCompare myFileCompare = new FileCompare();
                 myFileCompare.compLen = args.Any("--comparelength".Contains);
 
-                bool strip = args.Any("--strip".Contains);
-
                 if (args.Any("--findlinks".Contains))
                 {
                     FindLinks(destList);
@@ -39,10 +37,9 @@ namespace hardlinq
                 }
 
                 bool areSimilar = srcList.SequenceEqual(destList, myFileCompare);
-                if (areSimilar)
-                    Console.WriteLine("The contents of the two directories appears to be similar.");
-                else
-                    Console.WriteLine("The contents of the two directories are not the same.");
+                Console.WriteLine(areSimilar ? 
+                    "The contents of the two directories appears to be similar." :
+                    "The contents of the two directories are not the same.");
 
                 if (args.Any("--showcommon".Contains))
                 {
@@ -52,7 +49,7 @@ namespace hardlinq
                         Console.WriteLine("The following files exist in both directories:");
                         foreach (var v in queryCommonFiles)
                         {
-                            Console.WriteLine(v.FullName); //shows which items end up in result list  
+                            Console.WriteLine(v.FullName);  
                         }
                     }
                     else
@@ -82,13 +79,7 @@ namespace hardlinq
                             else
                                 Console.WriteLine("Error creating hard link: " + link);
                         }
-                        else
-                        {
-                            if (strip)
-                                Console.WriteLine(f.FullName.Replace(sourcePath, ""));
-                            else
-                                Console.WriteLine(f.FullName);
-                        }
+                        else Console.WriteLine(args.Any("--strip".Contains) ? f.FullName.Replace(sourcePath, "") : f.FullName);
                     }
                     Console.WriteLine("Total files: " + count);
                     //Console.WriteLine("Press any key to exit.");
