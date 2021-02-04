@@ -24,11 +24,13 @@ namespace hardlinq
                 DirectoryInfo srcDir = new DirectoryInfo(sourcePath);
                 DirectoryInfo destDir = new DirectoryInfo(destPath);
 
-                IEnumerable<FileInfo> srcList = srcDir.GetFiles("*.*", SearchOption.AllDirectories);
-                IEnumerable<FileInfo> destList = destDir.GetFiles("*.*", SearchOption.AllDirectories);
+                IEnumerable<FileInfo> srcList = srcDir.GetFiles("*", SearchOption.AllDirectories);
+                IEnumerable<FileInfo> destList = destDir.GetFiles("*", SearchOption.AllDirectories);
 
                 FileCompare myFileCompare = new FileCompare();
                 myFileCompare.compLen = args.Any("--comparelength".Contains);
+
+                bool strip = args.Any("--strip".Contains);
 
                 if (args.Any("--findlinks".Contains))
                 {
@@ -36,65 +38,65 @@ namespace hardlinq
                     return;
                 }
 
-                bool strip = args.Any("--strip".Contains);
-
-                bool areIdentical = srcList.SequenceEqual(destList, myFileCompare);
-                if (areIdentical)
-                {
+                bool areSimilar = srcList.SequenceEqual(destList, myFileCompare);
+                if (areSimilar)
                     Console.WriteLine("The contents of the two directories appears to be similar.");
-                    return;
-                }
                 else
-                {
                     Console.WriteLine("The contents of the two directories are not the same.");
-                    string format = myFileCompare.compLen ? "or match in bytes within" : "within";
-                    Console.WriteLine("The following files from \"{0}\" do not exist {1} \"{2}\"", sourcePath, format, destPath);
-                }
 
-                //var queryCommonFiles = srcList.Intersect(destList, myFileCompare);
-                //if (queryCommonFiles.Any())
-                //{
-                //    Console.WriteLine("The following files are in both folders:");
-                //    foreach (var v in queryCommonFiles)
-                //    {
-                //        Console.WriteLine(v.FullName); //shows which items end up in result list  
-                //    }
-                //}
-                //else
-                //    Console.WriteLine("There are no common files in the two folders.");
-
-                var queryList1Only = (from file in srcList
-                                      select file).Except(destList, myFileCompare);
-
-                int count = 0;
-                foreach (FileInfo f in queryList1Only)
+                if (args.Any("--showcommon".Contains))
                 {
-                    if (strip)
-                        Console.WriteLine(f.FullName.Replace(sourcePath, ""));
-                    else
-                        Console.WriteLine(f.FullName);
-                    ++count;
-                    if (args.Length == 2)
+                    var queryCommonFiles = srcList.Intersect(destList, myFileCompare);
+                    if (queryCommonFiles.Any())
                     {
-                        string link = f.FullName.Replace(sourcePath, destPath);
-                        Directory.CreateDirectory(f.DirectoryName.Replace(sourcePath, destPath));
-
-                        /* WARNING. Will likely fail at paths > 255 chars. */
-                        if (CreateHardLink(link, f.FullName, IntPtr.Zero))
-                            Console.WriteLine("Created hard link: " + link);
-                        else
-                            Console.WriteLine("Error creating hard link: " + link);
+                        Console.WriteLine("The following files exist in both directories:");
+                        foreach (var v in queryCommonFiles)
+                        {
+                            Console.WriteLine(v.FullName); //shows which items end up in result list  
+                        }
                     }
+                    else
+                        Console.WriteLine("There are no common files in the two directories.");
                 }
-                Console.WriteLine("Total files: " + count);
-                //Console.WriteLine("Press any key to exit.");
-                //Console.ReadKey();
+
+                if (!areSimilar)
+                {
+                    var queryList1Only = (from file in srcList
+                                          select file).Except(destList, myFileCompare);
+
+                    string format = "The following files from \"{0}\" do not exist {1} \"{2}\"";
+                    Console.WriteLine(format, sourcePath, myFileCompare.compLen ? "or match in bytes within" : "within", destPath);
+
+                    int count = 0;
+                    foreach (FileInfo f in queryList1Only)
+                    {
+                        if (strip)
+                            Console.WriteLine(f.FullName.Replace(sourcePath, ""));
+                        else
+                            Console.WriteLine(f.FullName);
+                        ++count;
+                        if (args.Length == 2)
+                        {
+                            string link = f.FullName.Replace(sourcePath, destPath);
+                            Directory.CreateDirectory(f.DirectoryName.Replace(sourcePath, destPath));
+
+                            /* WARNING. Will likely fail at paths > 255 chars. */
+                            if (CreateHardLinkW(link, f.FullName, IntPtr.Zero))
+                                Console.WriteLine("Created hard link: " + link);
+                            else
+                                Console.WriteLine("Error creating hard link: " + link);
+                        }
+                    }
+                    Console.WriteLine("Total files: " + count);
+                    //Console.WriteLine("Press any key to exit.");
+                    //Console.ReadKey();
+                }
             }
             else PrintUsage();
         }
 
-        [DllImport("Kernel32.dll", CharSet = CharSet.Unicode)]
-        static extern bool CreateHardLink(string lpFileName, string lpExistingFileName, IntPtr lpSecurityAttributes);
+        //[DllImport("Kernel32.dll", CharSet = CharSet.Unicode)]
+        //static extern bool CreateHardLink(string lpFileName, string lpExistingFileName, IntPtr lpSecurityAttributes);
 
         /* Starting in Windows 10, version 1607, MAX_PATH limitations have been removed from common Win32 file and directory functions. 
         However, you must opt-in to the new behavior.
@@ -106,8 +108,8 @@ namespace hardlinq
         because some processes may have started before the key was set.
         Note: This registry key can also be controlled via Group Policy at 
         Computer Configuration > Administrative Templates > System > Filesystem > Enable Win32 long paths. */
-        //[DllImport("Kernel32.dll", CharSet = CharSet.Unicode)]
-        //static extern bool CreateHardLinkW(string lpFileName, string lpExistingFileName, IntPtr lpSecurityAttributes);
+        [DllImport("Kernel32.dll", CharSet = CharSet.Unicode)]
+        static extern bool CreateHardLinkW(string lpFileName, string lpExistingFileName, IntPtr lpSecurityAttributes);
 
         static void FindLinks(IEnumerable<FileInfo> fileList)
         {
