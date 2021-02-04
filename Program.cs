@@ -165,10 +165,12 @@ namespace hardlinq
         {
             Console.WriteLine("hardlinq Copyright (C) 2021 soulstace\n" +
                     "github.com/soulstace/hardlinq\n\n" +
-                    "Usage: hardlinq <sourceDir> <destDir> [-t] [--strip] [--findlinks]\n" +
-                    "  -t\ttest mode (don't write, show diff files only)\n" +
-                    "  --strip\tstrip source path from test output (combine with -t)\n" +
-                    "  --findlinks\tfind all links in destDir (requires Sysinternals findlinks.exe in PATH)");
+                    "Usage: hardlinq <sourceDir> <destDir> [--test] [--showcommon] [--findlinks]\n" +
+                    "  --test\t\ttest mode (don't write, show diff files only)\n" +
+                    "  --strip\t\tstrip source path from test output\n" +
+                    "  --showcommon\t\tshow common files between the two directories\n" +
+                    "  --comparelength\tin addition to name, also compare files by length in bytes\n" +
+                    "  --findlinks\t\tfind all links in destDir (requires Sysinternals findlinks.exe in PATH)");
         }
     }
 
