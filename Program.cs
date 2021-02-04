@@ -15,11 +15,11 @@ namespace hardlinq
         static void Main(string[] args)
         {
             if (args.Length >= 2 &&
-                Directory.Exists(args[0]) &&
-                Directory.Exists(args[1]))
+                Directory.Exists(Environment.ExpandEnvironmentVariables(args[0])) &&
+                Directory.Exists(Environment.ExpandEnvironmentVariables(args[1])))
             {
-                string sourcePath = args[0];
-                string destPath = args[1];
+                string sourcePath = Environment.ExpandEnvironmentVariables(args[0]);
+                string destPath = Environment.ExpandEnvironmentVariables(args[1]);
 
                 DirectoryInfo srcDir = new DirectoryInfo(sourcePath);
                 DirectoryInfo destDir = new DirectoryInfo(destPath);
@@ -45,7 +45,7 @@ namespace hardlinq
 
                 if (args.Any("--showcommon".Contains))
                 {
-                    var queryCommonFiles = srcList.Intersect(destList, myFileCompare);
+                    var queryCommonFiles = srcList.Intersect(destList, myFileCompare); /* Intersect appears to drop duplicates. Common file count can be wrong */
                     if (queryCommonFiles.Any())
                     {
                         Console.WriteLine("The following files exist in both directories:");
@@ -53,6 +53,7 @@ namespace hardlinq
                         {
                             Console.WriteLine(strip ? f.FullName.Replace(sourcePath, "") : f.FullName);
                         }
+                        Console.WriteLine("Total common files: " + queryCommonFiles.Count());
                     }
                     else
                         Console.WriteLine("There are no common files in the two directories.");
@@ -60,22 +61,19 @@ namespace hardlinq
 
                 if (!areSimilar)
                 {
-                    var queryList1Only = (from file in srcList
-                                          select file).Except(destList, myFileCompare);
+                    var queryList1Only = (from file in srcList select file).Except(destList, myFileCompare); /* Bug, similar to Intersect */
 
                     string format = "The following files from \"{0}\" do not exist {1} \"{2}\"";
                     Console.WriteLine(format, sourcePath, myFileCompare.compLen ? "or match in bytes within" : "within", destPath);
 
-                    int count = 0;
                     foreach (var f in queryList1Only)
                     {
-                        ++count;
                         if (args.Length == 2)
                         {
                             string link = f.FullName.Replace(sourcePath, destPath);
                             Directory.CreateDirectory(f.DirectoryName.Replace(sourcePath, destPath));
 
-                            /* WARNING. Will likely fail at paths > 255 chars. */
+                            /* WARNING. This may fail at paths > 255 chars. See comments below */
                             if (CreateHardLinkW(link, f.FullName, IntPtr.Zero))
                                 Console.WriteLine("Created hard link: " + link);
                             else
@@ -83,7 +81,7 @@ namespace hardlinq
                         }
                         else Console.WriteLine(strip ? f.FullName.Replace(sourcePath, "") : f.FullName);
                     }
-                    Console.WriteLine("Total files: " + count);
+                    Console.WriteLine("Total uncommon files: " + queryList1Only.Count());
                     //Console.WriteLine("Press any key to exit.");
                     //Console.ReadKey();
                 }
@@ -177,7 +175,7 @@ namespace hardlinq
     {
         public FileCompare() { }
 
-        public bool compLen = false;        
+        public bool compLen = false;
 
         public bool Equals(FileInfo f1, FileInfo f2)
         {
