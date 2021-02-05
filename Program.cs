@@ -156,8 +156,17 @@ namespace hardlinq
                         psi.Arguments = "-nobanner " + "\"" + f.FullName + "\"";
                         Process p = Process.Start(psi);
                         string output = p.StandardOutput.ReadToEnd();
-                        Console.WriteLine(output);
-                        //sw.WriteLine(output);
+                        try
+                        {
+                            var lines = output.Split(new string[] { "\r\n" }, StringSplitOptions.RemoveEmptyEntries);
+                            var links = lines[2].Split(new string[] { "\t" }, StringSplitOptions.RemoveEmptyEntries);
+                            if (int.Parse(links[1]) > 0)
+                            {
+                                Console.WriteLine(output);
+                                //sw.WriteLine(output);
+                            }
+                        }
+                        catch { Console.WriteLine(output); }
                     }
                     //sw.Close();
                     Console.WriteLine("Done searching for links.");// See the resulting findlinks.txt in this program's directory.");
