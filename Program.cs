@@ -59,31 +59,23 @@ namespace hardlinq
                         Console.WriteLine("There are no common files in the two directories.");
                 }
 
-                if (!areSimilar)
+                if (!areSimilar && args.Length > 2)
                 {
-                    var queryList1Only = (from file in srcList select file).Except(destList, myFileCompare); /* Bug, similar to Intersect */
-
                     string format = "The following files from \"{0}\" do not exist {1} \"{2}\"";
                     Console.WriteLine(format, sourcePath, myFileCompare.compLen ? "or match in bytes within" : "within", destPath);
 
+                    var queryList1Only = (from file in srcList select file).Except(destList, myFileCompare); /* Bug, similar to Intersect */
                     foreach (var f in queryList1Only)
                     {
-                        if (args.Length == 2)
-                        {
-                            string link = f.FullName.Replace(sourcePath, destPath);
-                            Directory.CreateDirectory(f.DirectoryName.Replace(sourcePath, destPath));
-
-                            /* WARNING. This may fail at paths > 255 chars. See comments below */
-                            if (CreateHardLinkW(link, f.FullName, IntPtr.Zero))
-                                Console.WriteLine("Created hard link: " + link);
-                            else
-                                Console.WriteLine("Error creating hard link: " + link);
-                        }
-                        else Console.WriteLine(strip ? f.FullName.Replace(sourcePath, "") : f.FullName);
+                        Console.WriteLine(strip ? f.FullName.Replace(sourcePath, "") : f.FullName);
                     }
                     Console.WriteLine("Total uncommon files: " + queryList1Only.Count());
-                    //Console.WriteLine("Press any key to exit.");
-                    //Console.ReadKey();
+                }
+
+                if (args.Length == 2)
+                {
+                    /* Forced mode -- No comparison is made here */
+                    CreateHardLinks(srcList, sourcePath, destPath);
                 }
             }
             else PrintUsage();
@@ -104,6 +96,19 @@ namespace hardlinq
         Computer Configuration > Administrative Templates > System > Filesystem > Enable Win32 long paths. */
         [DllImport("Kernel32.dll", CharSet = CharSet.Unicode)]
         static extern bool CreateHardLinkW(string lpFileName, string lpExistingFileName, IntPtr lpSecurityAttributes);
+
+        static void CreateHardLinks(IEnumerable<FileInfo> fileList, string sourcePath, string destPath)
+        {
+            foreach (var f in fileList)
+            {
+                string link = f.FullName.Replace(sourcePath, destPath);
+                Directory.CreateDirectory(f.DirectoryName.Replace(sourcePath, destPath));
+                if (CreateHardLinkW(link, f.FullName, IntPtr.Zero))
+                    Console.WriteLine("Created hard link: " + link);
+                else
+                    Console.WriteLine("Error creating hard link: " + link + " (Maybe the file or link already exists.)");
+            }
+        }
 
         static void FindLinks(IEnumerable<FileInfo> fileList)
         {
