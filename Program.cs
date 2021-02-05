@@ -99,15 +99,25 @@ namespace hardlinq
 
         static void CreateHardLinks(IEnumerable<FileInfo> fileList, string sourcePath, string destPath)
         {
+            int successful = 0;
+            int failed = 0;
             foreach (var f in fileList)
             {
                 string link = f.FullName.Replace(sourcePath, destPath);
                 Directory.CreateDirectory(f.DirectoryName.Replace(sourcePath, destPath));
                 if (CreateHardLinkW(link, f.FullName, IntPtr.Zero))
+                {
                     Console.WriteLine("Created hard link: " + link);
+                    ++successful;
+                }
                 else
+                {
                     Console.WriteLine("Error creating hard link: " + link + " (Maybe the file or link already exists.)");
+                    ++failed;
+                }
             }
+            Console.WriteLine("Links failed (or already exist): " + failed);
+            Console.WriteLine("Links created successfully: " + successful);
         }
 
         static void FindLinks(IEnumerable<FileInfo> fileList)
