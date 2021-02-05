@@ -74,15 +74,12 @@ namespace hardlinq
 
                 if (args.Length == 2)
                 {
-                    /* Forced mode -- No comparison is made here */
+                    /* No file comparison is made here */
                     CreateHardLinks(srcList, sourcePath, destPath);
                 }
             }
             else PrintUsage();
         }
-
-        //[DllImport("Kernel32.dll", CharSet = CharSet.Unicode)]
-        //static extern bool CreateHardLink(string lpFileName, string lpExistingFileName, IntPtr lpSecurityAttributes);
 
         /* Starting in Windows 10, version 1607, MAX_PATH limitations have been removed from common Win32 file and directory functions. 
         However, you must opt-in to the new behavior.
@@ -105,19 +102,22 @@ namespace hardlinq
             {
                 string link = f.FullName.Replace(sourcePath, destPath);
                 Directory.CreateDirectory(f.DirectoryName.Replace(sourcePath, destPath));
-                if (CreateHardLinkW(link, f.FullName, IntPtr.Zero))
+                if (!File.Exists(link))
                 {
-                    Console.WriteLine("Created hard link: " + link);
-                    ++successful;
-                }
-                else
-                {
-                    Console.WriteLine("Error creating hard link: " + link + " (Maybe the file or link already exists.)");
-                    ++failed;
+                    if (CreateHardLinkW(link, f.FullName, IntPtr.Zero))
+                    {
+                        Console.WriteLine("Created hard link: " + link);
+                        ++successful;
+                    }
+                    else
+                    {
+                        Console.WriteLine("Error creating hard link: " + link);
+                        ++failed;
+                    }
                 }
             }
-            Console.WriteLine("Links failed (or already exist): " + failed);
-            Console.WriteLine("Links created successfully: " + successful);
+            Console.WriteLine("Links failed: " + failed);
+            Console.WriteLine("Links successful: " + successful);
         }
 
         static void FindLinks(IEnumerable<FileInfo> fileList)
