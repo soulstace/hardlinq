@@ -14,6 +14,11 @@ namespace hardlinq
         [STAThread]
         static void Main(string[] args)
         {
+            if (args.Any("--longpaths".Contains))
+            {
+                EnableLongPaths();
+                return;
+            }
             if (args.Length >= 2 &&
                 Directory.Exists(Environment.ExpandEnvironmentVariables(args[0])) &&
                 Directory.Exists(Environment.ExpandEnvironmentVariables(args[1])))
@@ -179,6 +184,28 @@ namespace hardlinq
             else Console.WriteLine("You need to run Sysinternals findlinks.exe and accept its EULA.");
         }
 
+        static void EnableLongPaths()
+        {
+            try
+            {
+                RegistryKey r = Registry.LocalMachine.OpenSubKey(@"SYSTEM\CurrentControlSet\Control\FileSystem");
+                if ((int)r.GetValue("LongPathsEnabled", 0) < 1)
+                {
+                    r.Close(); /* close and re-open for write access (requires admin) */
+                    r = Registry.LocalMachine.OpenSubKey(@"SYSTEM\CurrentControlSet\Control\FileSystem",
+                        RegistryKeyPermissionCheck.ReadWriteSubTree, System.Security.AccessControl.RegistryRights.SetValue);
+                    r.SetValue("LongPathsEnabled", 1, RegistryValueKind.DWord);
+                    Console.WriteLine("The registry value was set successfully. A reboot may be required to take effect.");
+                }
+                else Console.WriteLine("Long paths are already enabled. No change was needed.");
+                r.Close();
+            }
+            catch (Exception x)
+            {
+                Console.WriteLine(x.Message);
+            }
+        }
+
         static void PrintUsage()
         {
             Console.WriteLine("hardlinq Copyright (C) 2021 soulstace\n" +
@@ -188,7 +215,12 @@ namespace hardlinq
                     "  --strip\t\tstrip source path from test output\n" +
                     "  --showcommon\t\tshow common files between the two directories\n" +
                     "  --comparelength\tin addition to name, also compare files by length in bytes\n" +
-                    "  --findlinks\t\tfind all links in destDir (requires Sysinternals findlinks.exe in PATH)");
+                    "  --findlinks\t\tfind all links in destDir (requires Sysinternals findlinks.exe in PATH)\n" +
+                    "  --longpaths\t\tset registry value LongPathsEnabled=1 (requires admin)\n\n" +
+                    "Notes:\n" +
+                    "  Both sourceDir and destDir must be provided, and they must exist.\n" +
+                    "  Use full paths, with quotes if they contain spaces.\n" +
+                    "  Long paths may fail if you haven't opted-in by registry.");
         }
     }
 
