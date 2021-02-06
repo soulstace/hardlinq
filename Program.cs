@@ -38,6 +38,7 @@ namespace hardlinq
                 catch (UnauthorizedAccessException x)
                 {
                     Console.WriteLine(x.Message);
+                    Console.WriteLine("Try a higher privileged command shell, or NSudo.");
                     return;
                 }
 
