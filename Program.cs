@@ -156,6 +156,8 @@ namespace hardlinq
                         FileName = "findlinks.exe"
                     };
 
+                    bool error = false;
+                    int totalLinks = 0;
                     foreach (var f in fileList)
                     {
                         psi.Arguments = "-nobanner " + "\"" + f.FullName + "\"";
@@ -163,18 +165,25 @@ namespace hardlinq
                         string output = p.StandardOutput.ReadToEnd();
                         try
                         {
-                            var lines = output.Split(new string[] { "\r\n" }, StringSplitOptions.RemoveEmptyEntries);
-                            var links = lines[2].Split(new string[] { "\t" }, StringSplitOptions.RemoveEmptyEntries);
-                            if (int.Parse(links[1]) > 0)
+                            string[] lines = output.Split(new string[] { "\r\n" }, StringSplitOptions.RemoveEmptyEntries);
+                            string[] linkstr = lines[2].Split(new string[] { "\t" }, StringSplitOptions.RemoveEmptyEntries);
+                            int links = int.Parse(linkstr[1]);
+                            if (links > 0)
                             {
+                                totalLinks += links;
                                 Console.WriteLine(output);
                                 //sw.WriteLine(output);
                             }
                         }
-                        catch { Console.WriteLine(output); }
+                        catch 
+                        {
+                            error = true;
+                            Console.WriteLine(output); 
+                        }
                     }
                     //sw.Close();
                     Console.WriteLine("Done searching for links.");// See the resulting findlinks.txt in this program's directory.");
+                    if (!error) Console.WriteLine("Total links found: " + totalLinks);
                 }
                 catch (Exception x)
                 {
