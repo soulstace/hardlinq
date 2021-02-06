@@ -25,12 +25,21 @@ namespace hardlinq
             {
                 string sourcePath = Environment.ExpandEnvironmentVariables(args[0]);
                 string destPath = Environment.ExpandEnvironmentVariables(args[1]);
-
                 DirectoryInfo srcDir = new DirectoryInfo(sourcePath);
                 DirectoryInfo destDir = new DirectoryInfo(destPath);
+                IEnumerable<FileInfo> srcList;
+                IEnumerable<FileInfo> destList;
 
-                IEnumerable<FileInfo> srcList = srcDir.GetFiles("*", SearchOption.AllDirectories);
-                IEnumerable<FileInfo> destList = destDir.GetFiles("*", SearchOption.AllDirectories);
+                try
+                {
+                    srcList = srcDir.GetFiles("*", SearchOption.AllDirectories);
+                    destList = destDir.GetFiles("*", SearchOption.AllDirectories);
+                }
+                catch (UnauthorizedAccessException x)
+                {
+                    Console.WriteLine(x.Message);
+                    return;
+                }
 
                 FileCompare myFileCompare = new FileCompare();
                 myFileCompare.compLen = args.Any("--comparelength".Contains);
