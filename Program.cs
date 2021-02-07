@@ -23,12 +23,10 @@ namespace hardlinq
                 Directory.Exists(Environment.ExpandEnvironmentVariables(args[0])) &&
                 Directory.Exists(Environment.ExpandEnvironmentVariables(args[1])))
             {
-                string sourcePath = Environment.ExpandEnvironmentVariables(args[0]);
-                string destPath = Environment.ExpandEnvironmentVariables(args[1]);
-                DirectoryInfo srcDir = new DirectoryInfo(sourcePath);
-                DirectoryInfo destDir = new DirectoryInfo(destPath);
-                IEnumerable<FileInfo> srcList;
-                IEnumerable<FileInfo> destList;
+                string sourcePath = Environment.ExpandEnvironmentVariables(args[0]),
+                    destPath = Environment.ExpandEnvironmentVariables(args[1]);
+                DirectoryInfo srcDir = new DirectoryInfo(sourcePath), destDir = new DirectoryInfo(destPath);
+                IEnumerable<FileInfo> srcList, destList;
 
                 try
                 {
@@ -42,9 +40,6 @@ namespace hardlinq
                     return;
                 }
 
-                FileCompare myFileCompare = new FileCompare();
-                myFileCompare.compLen = args.Any("--comparelength".Contains);
-
                 if (args.Any("--findlinks".Contains))
                 {
                     FindLinks(destList);
@@ -52,6 +47,8 @@ namespace hardlinq
                 }
 
                 bool strip = sourcePath.Equals(".") ? false : args.Any("--strip".Contains);
+
+                FileCompare myFileCompare = new FileCompare() { compLen = args.Any("--comparelength".Contains) };
 
                 bool areSimilar = srcList.SequenceEqual(destList, myFileCompare);
                 Console.WriteLine(areSimilar ? 
@@ -111,8 +108,7 @@ namespace hardlinq
 
         static void CreateHardLinks(IEnumerable<FileInfo> fileList, string sourcePath, string destPath)
         {
-            int successful = 0;
-            int failed = 0;
+            int successful = 0, failed = 0;
             foreach (var f in fileList)
             {
                 string link = f.FullName.Replace(sourcePath, destPath);
@@ -131,8 +127,7 @@ namespace hardlinq
                     }
                 }
             }
-            Console.WriteLine("Links failed: " + failed);
-            Console.WriteLine("Links successful: " + successful);
+            Console.WriteLine("Links failed: " + failed + "\nLinks successful: " + successful);
         }
 
         static void FindLinks(IEnumerable<FileInfo> fileList)
@@ -207,16 +202,17 @@ namespace hardlinq
         {
             try
             {
-                RegistryKey r = Registry.LocalMachine.OpenSubKey(@"SYSTEM\CurrentControlSet\Control\FileSystem");
-                if ((int)r.GetValue("LongPathsEnabled", 0) < 1)
+                string key = @"SYSTEM\CurrentControlSet\Control\FileSystem", val = "LongPathsEnabled";
+                RegistryKey r = Registry.LocalMachine.OpenSubKey(key);
+                if ((int)r.GetValue(val, 0) < 1)
                 {
                     r.Close(); /* close and re-open for write access (requires admin) */
-                    r = Registry.LocalMachine.OpenSubKey(@"SYSTEM\CurrentControlSet\Control\FileSystem",
-                        RegistryKeyPermissionCheck.ReadWriteSubTree, System.Security.AccessControl.RegistryRights.SetValue);
-                    r.SetValue("LongPathsEnabled", 1, RegistryValueKind.DWord);
+                    r = Registry.LocalMachine.OpenSubKey(key, RegistryKeyPermissionCheck.ReadWriteSubTree, System.Security.AccessControl.RegistryRights.SetValue);
+                    r.SetValue(val, 1, RegistryValueKind.DWord);
                     Console.WriteLine("The registry value was set successfully. A reboot may be required to take effect.");
                 }
-                else Console.WriteLine("Long paths are already enabled. No change was needed.");
+                else
+                    Console.WriteLine("Long paths are already enabled. No change was needed.");
                 r.Close();
             }
             catch (Exception x)
