@@ -11,6 +11,21 @@ namespace hardlinq
 {
     class Program
     {
+        const string usage = 
+            "hardlinq Copyright (C) 2021 soulstace\n" +
+            "github.com/soulstace/hardlinq\n\n" +
+            "Usage: hardlinq <sourceDir> <destDir> [--test] [--showcommon] [--findlinks]\n" +
+            "  --test\t\ttest mode (don't write, show diff files only)\n" +
+            "  --strip\t\tstrip source path from test output\n" +
+            "  --showcommon\t\tshow common files between the two directories\n" +
+            "  --comparelength\tin addition to name, also compare files by length in bytes\n" +
+            "  --findlinks\t\tfind all links in destDir (requires Sysinternals findlinks.exe in PATH)\n" +
+            "  --longpaths\t\tset registry value LongPathsEnabled=1 (requires admin)\n\n" +
+            "Notes:\n" +
+            "  Both sourceDir and destDir must be provided, and they must exist.\n" +
+            "  Use full paths, with quotes if they contain spaces.\n" +
+            "  Long paths may fail if you haven't opted-in by registry.";
+
         [STAThread]
         static void Main(string[] args)
         {
@@ -51,7 +66,7 @@ namespace hardlinq
                 FileCompare myFileCompare = new FileCompare() { compLen = args.Any("--comparelength".Contains) };
 
                 bool areSimilar = srcList.SequenceEqual(destList, myFileCompare);
-                Console.WriteLine(areSimilar ? 
+                Console.WriteLine(areSimilar ?
                     "The contents of the two directories appears to be similar." :
                     "The contents of the two directories are not the same.");
 
@@ -90,7 +105,7 @@ namespace hardlinq
                     CreateHardLinks(srcList, sourcePath, destPath);
                 }
             }
-            else PrintUsage();
+            else Console.WriteLine(usage);
         }
 
         /* Starting in Windows 10, version 1607, MAX_PATH limitations have been removed from common Win32 file and directory functions. 
@@ -202,7 +217,7 @@ namespace hardlinq
         {
             try
             {
-                string key = @"SYSTEM\CurrentControlSet\Control\FileSystem", val = "LongPathsEnabled";
+                const string key = @"SYSTEM\CurrentControlSet\Control\FileSystem", val = "LongPathsEnabled";
                 RegistryKey r = Registry.LocalMachine.OpenSubKey(key);
                 if ((int)r.GetValue(val, 0) < 1)
                 {
@@ -219,23 +234,6 @@ namespace hardlinq
             {
                 Console.WriteLine(x.Message);
             }
-        }
-
-        static void PrintUsage()
-        {
-            Console.WriteLine("hardlinq Copyright (C) 2021 soulstace\n" +
-                    "github.com/soulstace/hardlinq\n\n" +
-                    "Usage: hardlinq <sourceDir> <destDir> [--test] [--showcommon] [--findlinks]\n" +
-                    "  --test\t\ttest mode (don't write, show diff files only)\n" +
-                    "  --strip\t\tstrip source path from test output\n" +
-                    "  --showcommon\t\tshow common files between the two directories\n" +
-                    "  --comparelength\tin addition to name, also compare files by length in bytes\n" +
-                    "  --findlinks\t\tfind all links in destDir (requires Sysinternals findlinks.exe in PATH)\n" +
-                    "  --longpaths\t\tset registry value LongPathsEnabled=1 (requires admin)\n\n" +
-                    "Notes:\n" +
-                    "  Both sourceDir and destDir must be provided, and they must exist.\n" +
-                    "  Use full paths, with quotes if they contain spaces.\n" +
-                    "  Long paths may fail if you haven't opted-in by registry.");
         }
     }
 
