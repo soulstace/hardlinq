@@ -64,6 +64,7 @@ namespace hardlinq
                             Console.WriteLine(strip ? f.FullName.Replace(sourcePath, "") : f.FullName);
                         }
                         Console.WriteLine("Total common files: " + queryCommonFiles.Count());
+                        Console.WriteLine("Warning: Files having the exact same name in subdirectories may fail to be reported.");
                     }
                     else
                         Console.WriteLine("There are no common files in the two directories.");
@@ -80,6 +81,7 @@ namespace hardlinq
                         Console.WriteLine(strip ? f.FullName.Replace(sourcePath, "") : f.FullName);
                     }
                     Console.WriteLine("Total uncommon files: " + queryList1Only.Count());
+                    Console.WriteLine("Warning: Files having the exact same name in subdirectories may fail to be reported.");
                 }
 
                 if (args.Length == 2)
