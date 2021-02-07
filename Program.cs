@@ -51,9 +51,7 @@ namespace hardlinq
                 FileCompare myFileCompare = new FileCompare { compLen = args.Any("--comparelength".Contains) };
 
                 bool areSimilar = srcList.SequenceEqual(destList, myFileCompare);
-                Console.WriteLine(areSimilar ?
-                    "The contents of the two directories appears to be similar." :
-                    "The contents of the two directories are not the same.");
+                Console.WriteLine("The contents of the two directories {0}.", areSimilar ? "appears to be similar" : "are not the same");
 
                 if (args.Any("--showcommon".Contains))
                 {
@@ -73,8 +71,8 @@ namespace hardlinq
 
                 if (!areSimilar && args.Length > 2)
                 {
-                    string format = "The following files from \"{0}\" do not exist {1} \"{2}\"";
-                    Console.WriteLine(format, sourcePath, myFileCompare.compLen ? "or match in bytes within" : "within", destPath);
+                    Console.WriteLine("The following files from \"{0}\" do not exist {1}within \"{2}\"", sourcePath, 
+                        myFileCompare.compLen ? "or match in bytes " : "", destPath);
 
                     var queryList1Only = (from file in srcList select file).Except(destList, myFileCompare); /* Bug, similar to Intersect */
                     foreach (var f in queryList1Only)
