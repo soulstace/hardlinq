@@ -9,9 +9,10 @@
 	  --showcommon	show common files between the two directories
 	  --comparelength	in addition to name, also compare files by length in bytes
 	  --findlinks	find all links in destDir (requires Sysinternals findlinks.exe in PATH)
+	  --longpaths	set registry value LongPathsEnabled=1 (requires admin)
 
 	Notes:
 	  Program is alpha. Not recommended for use with critical data.
+	  Both sourceDir and destDir must be provided, and they must exist.
 	  Use full paths, with quotes if they contain spaces.
-	  Paths >255 characters may fail if you don't opt-in by registry
-	  Both <sourceDir> and <destDir> directories must exist.
+	  Long paths may fail if you haven't opted-in by registry.
