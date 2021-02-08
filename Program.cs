@@ -158,7 +158,7 @@ namespace hardlinq
                     {
                         UseShellExecute = false,
                         RedirectStandardOutput = true,
-                        FileName = "findlinks.exe"
+                        FileName = "FindLinks.exe"
                     };
 
                     bool error = false;
@@ -195,7 +195,7 @@ namespace hardlinq
                     Console.WriteLine(x.Message);
                 }
             }
-            else Console.WriteLine("You need to run Sysinternals findlinks.exe and accept its EULA.");
+            else Console.WriteLine("You need to run Sysinternals FindLinks.exe and accept its EULA.");
         }
 
         static void EnableLongPaths()
@@ -230,7 +230,7 @@ namespace hardlinq
                     "  --strip\t\tstrip source path from test output\n" +
                     "  --showcommon\t\tshow common files between the two directories\n" +
                     "  --comparelength\tin addition to name, also compare files by length in bytes\n" +
-                    "  --findlinks\t\tfind all links in destDir (requires Sysinternals findlinks.exe in PATH)\n" +
+                    "  --findlinks\t\tfind all links in destDir (requires Sysinternals FindLinks.exe in PATH)\n" +
                     "  --longpaths\t\tset registry value LongPathsEnabled=1 (requires admin)\n\n" +
                     "Notes:\n" +
                     "  Both sourceDir and destDir must be provided, and they must exist.\n" +

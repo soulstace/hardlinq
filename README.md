@@ -8,7 +8,7 @@
 	  --strip	strip source path from test output
 	  --showcommon	show common files between the two directories
 	  --comparelength	in addition to name, also compare files by length in bytes
-	  --findlinks	find all links in destDir (requires Sysinternals findlinks.exe in PATH)
+	  --findlinks	find all links in destDir (requires Sysinternals FindLinks.exe in PATH)
 	  --longpaths	set registry value LongPathsEnabled=1 (requires admin)
 
 	Notes:
