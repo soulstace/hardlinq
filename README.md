@@ -12,7 +12,6 @@
 	  --longpaths	set registry value LongPathsEnabled=1 (requires admin)
 
 	Notes:
-	  Program is alpha. Not recommended for use with critical data.
-	  Both sourceDir and destDir must be provided, and they must exist.
+	  Both sourceDir and destDir must be provided (sourceDir contains the files you want to link to).
 	  Use full paths, with quotes if they contain spaces.
 	  Long paths may fail if you haven't opted-in by registry.

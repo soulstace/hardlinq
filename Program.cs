@@ -20,9 +20,20 @@ namespace hardlinq
                 return;
             }
             if (args.Length >= 2 &&
-                Directory.Exists(Environment.ExpandEnvironmentVariables(args[0])) &&
-                Directory.Exists(Environment.ExpandEnvironmentVariables(args[1])))
+                Directory.Exists(Environment.ExpandEnvironmentVariables(args[0])))// &&
+                //Directory.Exists(Environment.ExpandEnvironmentVariables(args[1])))
             {
+                try
+                {
+                    if (!Directory.Exists(Environment.ExpandEnvironmentVariables(args[1])))
+                        Directory.CreateDirectory(Environment.ExpandEnvironmentVariables(args[1]));
+                }
+                catch (Exception x)
+                {
+                    Console.WriteLine(x.Message + "\nFailed to create the destination directory.");
+                    return;
+                }
+
                 string sourcePath = Environment.ExpandEnvironmentVariables(args[0]),
                     destPath = Environment.ExpandEnvironmentVariables(args[1]);
                 DirectoryInfo srcDir = new DirectoryInfo(sourcePath), destDir = new DirectoryInfo(destPath);
@@ -233,7 +244,7 @@ namespace hardlinq
                     "  --findlinks\t\tfind all links in destDir (requires Sysinternals FindLinks.exe in PATH)\n" +
                     "  --longpaths\t\tset registry value LongPathsEnabled=1 (requires admin)\n\n" +
                     "Notes:\n" +
-                    "  Both sourceDir and destDir must be provided, and they must exist.\n" +
+                    "  Both sourceDir and destDir must be provided (sourceDir contains the files you want to link to).\n" +
                     "  Use full paths, with quotes if they contain spaces.\n" +
                     "  Long paths may fail if you haven't opted-in by registry.");
         }
