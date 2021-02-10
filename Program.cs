@@ -23,10 +23,18 @@ namespace hardlinq
                 Directory.Exists(Environment.ExpandEnvironmentVariables(args[0])))// &&
                 //Directory.Exists(Environment.ExpandEnvironmentVariables(args[1])))
             {
+                string sourcePath = Environment.ExpandEnvironmentVariables(args[0]),
+                    destPath = Environment.ExpandEnvironmentVariables(args[1]);
+
                 try
                 {
-                    if (!Directory.Exists(Environment.ExpandEnvironmentVariables(args[1])))
-                        Directory.CreateDirectory(Environment.ExpandEnvironmentVariables(args[1]));
+                    if (!Directory.Exists(destPath))
+                    {
+                        Console.WriteLine("The directory {0} doesn't exist. Do you want to create it? Y/N", destPath);
+                        if (Console.ReadKey().Key.Equals(ConsoleKey.Y))
+                            Directory.CreateDirectory(destPath);
+                        else return;
+                    }
                 }
                 catch (Exception x)
                 {
@@ -34,8 +42,6 @@ namespace hardlinq
                     return;
                 }
 
-                string sourcePath = Environment.ExpandEnvironmentVariables(args[0]),
-                    destPath = Environment.ExpandEnvironmentVariables(args[1]);
                 DirectoryInfo srcDir = new DirectoryInfo(sourcePath), destDir = new DirectoryInfo(destPath);
                 IEnumerable<FileInfo> srcList, destList;
 
@@ -119,26 +125,33 @@ namespace hardlinq
 
         static void CreateHardLinks(IEnumerable<FileInfo> fileList, string sourcePath, string destPath)
         {
-            int successful = 0, failed = 0;
-            foreach (var f in fileList)
+            try
             {
-                string link = f.FullName.Replace(sourcePath, destPath);
-                Directory.CreateDirectory(f.DirectoryName.Replace(sourcePath, destPath));
-                if (!File.Exists(link))
+                int successful = 0, failed = 0;
+                foreach (var f in fileList)
                 {
-                    if (CreateHardLinkW(link, f.FullName, IntPtr.Zero))
+                    string link = f.FullName.Replace(sourcePath, destPath);
+                    Directory.CreateDirectory(f.DirectoryName.Replace(sourcePath, destPath));
+                    if (!File.Exists(link))
                     {
-                        Console.WriteLine("Created hard link: " + link);
-                        ++successful;
-                    }
-                    else
-                    {
-                        Console.WriteLine("Error creating hard link: " + link);
-                        ++failed;
+                        if (CreateHardLinkW(link, f.FullName, IntPtr.Zero))
+                        {
+                            Console.WriteLine("Created hard link: " + link);
+                            ++successful;
+                        }
+                        else
+                        {
+                            Console.WriteLine("Error creating hard link: " + link);
+                            ++failed;
+                        }
                     }
                 }
+                Console.WriteLine("Links failed: " + failed + "\nLinks successful: " + successful);
             }
-            Console.WriteLine("Links failed: " + failed + "\nLinks successful: " + successful);
+            catch (UnauthorizedAccessException x)
+            {
+                Console.WriteLine(x.Message);
+            }
         }
 
         static void FindLinks(IEnumerable<FileInfo> fileList)
