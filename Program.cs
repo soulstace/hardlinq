@@ -19,9 +19,7 @@ namespace hardlinq
                 EnableLongPaths();
                 return;
             }
-            if (args.Length >= 2 &&
-                Directory.Exists(Environment.ExpandEnvironmentVariables(args[0])))// &&
-                //Directory.Exists(Environment.ExpandEnvironmentVariables(args[1])))
+            if (args.Length >= 2 && Directory.Exists(Environment.ExpandEnvironmentVariables(args[0])))
             {
                 string sourcePath = Environment.ExpandEnvironmentVariables(args[0]),
                     destPath = Environment.ExpandEnvironmentVariables(args[1]);
@@ -52,8 +50,7 @@ namespace hardlinq
                 }
                 catch (UnauthorizedAccessException x)
                 {
-                    Console.WriteLine(x.Message);
-                    Console.WriteLine("Try a higher privileged command shell, or NSudo.");
+                    Console.WriteLine(x.Message + "\nTry a higher privileged command shell, or NSudo.");
                     return;
                 }
 
