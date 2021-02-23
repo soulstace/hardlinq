@@ -56,7 +56,7 @@ namespace hardlinq
 
                 if (args.Any("--findlinks".Contains))
                 {
-                    FindLinks(destList);
+                    FindLinks(destList, args.Any("--64".Contains));
                     return;
                 }
 
@@ -151,7 +151,7 @@ namespace hardlinq
             }
         }
 
-        static void FindLinks(IEnumerable<FileInfo> fileList)
+        static void FindLinks(IEnumerable<FileInfo> fileList, bool do64)
         {
             bool eulaAccepted = false;
             RegistryKey r = Registry.CurrentUser.OpenSubKey(@"SOFTWARE\Sysinternals\FindLinks",
@@ -179,7 +179,7 @@ namespace hardlinq
                     {
                         UseShellExecute = false,
                         RedirectStandardOutput = true,
-                        FileName = "FindLinks.exe"
+                        FileName = do64 ? "FindLinks64.exe" : "FindLinks.exe"
                     };
 
                     bool error = false;
